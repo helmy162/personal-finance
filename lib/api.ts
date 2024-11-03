@@ -9,6 +9,12 @@ export const fetchCategories = async (): Promise<ICategory[]> => {
     await createCategory({ CategoryName: 'Food' }),
     await createCategory({ CategoryName: 'Transport' }),
     await createCategory({ CategoryName: 'Housing' }),
+    // add partial category data 
+    await createCategory({ CategoryName: 'Rent', ParentKey: 'cat_3' }),
+    await createCategory({ CategoryName: 'Groceries', ParentKey: 'cat_1' }),
+    await createCategory({ CategoryName: 'Gas', ParentKey: 'cat_2' }),
+    // add sub sub category
+    await createCategory({ CategoryName: 'Petrol', ParentKey: 'cat_6' }),
   ]
 }
 

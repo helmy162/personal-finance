@@ -1,6 +1,6 @@
+import { ReactElement, useState } from "react";
 import { ICategory } from "@/types";
 import { Edit, Trash2, ChevronRight, ChevronDown } from "lucide-react";
-import { ReactElement, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -10,6 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import DeleteCategoryDialog from "@/components/DeleteCategoryDialog";
 
 interface CategoryTableProps {
   categories: ICategory[];
@@ -25,6 +26,10 @@ export default function CategoryTable({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set()
   );
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{
+    category: ICategory;
+    children: ICategory[];
+  } | null>(null);
 
   const toggleCategory = (key: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -34,6 +39,22 @@ export default function CategoryTable({
       newExpanded.add(key);
     }
     setExpandedCategories(newExpanded);
+  };
+
+  const getChildCategories = (parentKey: string): ICategory[] => {
+    return categories.filter((cat) => cat.ParentKey === parentKey);
+  };
+
+  const getAllDescendants = (parentKey: string): ICategory[] => {
+    const children = getChildCategories(parentKey);
+    return children.concat(
+      children.flatMap((child) => getAllDescendants(child.Key))
+    );
+  };
+
+  const handleDeleteClick = (category: ICategory) => {
+    const children = getAllDescendants(category.Key);
+    setDeleteConfirmation({ category, children });
   };
 
   const renderCategoryRow = (category: ICategory, level: number) => {
@@ -68,20 +89,26 @@ export default function CategoryTable({
         </TableCell>
         <TableCell>{category.CreatedBy}</TableCell>
         <TableCell>
-          {new Date(category.CreationDate).toLocaleDateString()}
+          {new Date(category.CreationDate).toLocaleString()}
         </TableCell>
         <TableCell>
-          <div className="flex justify-end space-x-2">
-            <Button variant="ghost" size="sm" onClick={() => onEdit(category)}>
+          <div className="flex justify-end space-x-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(category)}
+              className="px-2"
+            >
               <Edit className="h-4 w-4" />
               <span className="sr-only">Edit</span>
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onDelete(category)}
+              onClick={() => handleDeleteClick(category)}
+              className="px-2"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-4 w-4 text-destructive" />
               <span className="sr-only">Delete</span>
             </Button>
           </div>
@@ -106,18 +133,26 @@ export default function CategoryTable({
   };
 
   return (
-    <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[300px]">Category Name</TableHead>
-            <TableHead>Created By</TableHead>
-            <TableHead>Creation Date</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>{renderCategories()}</TableBody>
-      </Table>
-    </div>
+    <>
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[300px]">Category Name</TableHead>
+              <TableHead>Created By</TableHead>
+              <TableHead>Creation Date</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>{renderCategories()}</TableBody>
+        </Table>
+      </div>
+
+      <DeleteCategoryDialog
+        deleteConfirmation={deleteConfirmation}
+        setDeleteConfirmation={setDeleteConfirmation}
+        onDelete={onDelete}
+      />
+    </>
   );
 }

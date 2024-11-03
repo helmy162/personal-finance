@@ -36,44 +36,80 @@ export default function ExpenseCategoryManager() {
     } catch (error) {
       console.error("Failed to fetch categories:", error);
       toast({
+        title: "Error",
+        description: "Failed to load categories. Please try again.",
         variant: "destructive",
-        title: "Failed to fetch categories",
-        description: "Please try again later.",
       });
-      // Here you might want to set an error state and display an error message to the user
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleAddCategory = async (categoryData: Partial<ICategory>) => {
-    const newCategory = await createCategory(categoryData);
-    setCategories([...categories, newCategory]);
+    try {
+      const newCategory = await createCategory(categoryData);
+      setCategories([...categories, newCategory]);
+      toast({
+        title: "Success",
+        description: "Category added successfully.",
+      });
+    } catch (error) {
+      console.error("Failed to add category:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add category. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleUpdateCategory = async (categoryData: Partial<ICategory>) => {
     if (selectedCategory) {
-      const updatedCategory = await updateCategory(
-        selectedCategory.Key,
-        categoryData
-      );
-      setCategories(
-        categories.map((cat) =>
-          cat.Key === updatedCategory.Key ? updatedCategory : cat
-        )
-      );
-      setSelectedCategory(null);
+      try {
+        const updatedCategory = await updateCategory(
+          selectedCategory.Key,
+          categoryData
+        );
+        setCategories(
+          categories.map((cat) =>
+            cat.Key === updatedCategory.Key ? updatedCategory : cat
+          )
+        );
+        setSelectedCategory(null);
+        toast({
+          title: "Success",
+          description: "Category updated successfully.",
+        });
+      } catch (error) {
+        console.error("Failed to update category:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update category. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
   const handleDeleteCategory = async (category: ICategory) => {
-    if (
-      window.confirm(
-        `Are you sure you want to delete "${category.CategoryName}"? This will also delete all child categories.`
-      )
-    ) {
+    try {
       await deleteCategory(category.Key);
-      setCategories(categories.filter((cat) => cat.Key !== category.Key));
+      setCategories((prevCategories) =>
+        prevCategories.filter(
+          (cat) => cat.Key !== category.Key && cat.ParentKey !== category.Key
+        )
+      );
+      toast({
+        title: "Success",
+        description: "Category deleted successfully.",
+      });
+    } catch (error) {
+      console.error("Failed to delete category:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete category. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

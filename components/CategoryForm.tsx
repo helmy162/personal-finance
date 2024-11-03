@@ -61,8 +61,14 @@ export default function CategoryForm({
       CategoryName: categoryName,
       ParentKey: hasParent ? parentKey : undefined,
     });
+    resetForm();
     onClose();
   };
+
+  const resetForm = () => {
+    setCategoryName("");
+    setParentKey(noParentValue);
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
