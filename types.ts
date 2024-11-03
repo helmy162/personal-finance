@@ -12,4 +12,19 @@ interface ICategory {
   DeletionDate?: number;
 }
 
-export type { ICategory }
+interface IPayee {
+  Key: string;
+  CompanyName: string;
+  Address1?: string;
+  Address2?: string;
+  City?: string;
+  State?: string;
+  PostalCode?: string;
+  Country?: string;
+  TaxID?: string;
+  PrimaryContact?: string;
+  PrimaryContactPhone?: string;
+  PrimaryContactEmail?: string;
+}
+
+export type { ICategory, IPayee };

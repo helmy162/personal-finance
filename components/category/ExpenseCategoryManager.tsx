@@ -3,20 +3,20 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ICategory } from "@/types";
-import CategoryTable from "./CategoryTable";
-import CategoryTableSkeleton from "./CategoryTableSkeleton";
-import CategoryForm from "./CategoryForm";
+import CategoryTable from "@/components/category/CategoryTable";
+import CategoryTableSkeleton from "@/components/category/CategoryTableSkeleton";
+import CategoryForm from "@/components/category/CategoryForm";
 import {
   fetchCategories,
   createCategory,
   updateCategory,
   deleteCategory,
-} from "@/lib/api";
+} from "@/lib/api/categories";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 
 export default function ExpenseCategoryManager() {
-  const { toast } = useToast()
+  const { toast } = useToast();
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<ICategory | null>(
     null

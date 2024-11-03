@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import DeleteCategoryDialog from "@/components/DeleteCategoryDialog";
+import DeleteCategoryDialog from "@/components/category/DeleteCategoryDialog";
 
 interface CategoryTableProps {
   categories: ICategory[];

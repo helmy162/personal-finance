@@ -21,7 +21,7 @@ export default function CategoryTableSkeleton() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {[...Array(5)].map((_, index) => (
+          {[...Array(3)].map((_, index) => (
             <TableRow key={index}>
               <TableCell>
                 <Skeleton className="h-6 w-[250px]" />
