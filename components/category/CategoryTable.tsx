@@ -1,6 +1,15 @@
-import { ReactElement, useState } from "react";
+"use client";
+
+import { ReactElement, useState, useEffect } from "react";
 import { ICategory } from "@/types";
-import { Edit, Trash2, ChevronRight, ChevronDown } from "lucide-react";
+import {
+  Edit,
+  Trash2,
+  ChevronRight,
+  ChevronDown,
+  Maximize2,
+  Minimize2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -39,6 +48,30 @@ export default function CategoryTable({
     category: ICategory;
     children: ICategory[];
   } | null>(null);
+  const [expandAll, setExpandAll] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const savedExpandAll = localStorage.getItem("expandAllCategories");
+    if (savedExpandAll && JSON.parse(savedExpandAll) == true) {
+      setExpandAll(true);
+    } else {
+      setExpandAll(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (expandAll !== null)
+      localStorage.setItem("expandAllCategories", JSON.stringify(expandAll));
+    if (expandAll) {
+      setExpandedCategories(new Set(categories.map((cat) => cat.Key)));
+    } else {
+      setExpandedCategories(new Set());
+    }
+  }, [expandAll, categories]);
+
+  const toggleExpandAll = () => {
+    setExpandAll(!expandAll);
+  };
 
   const toggleCategory = (key: string) => {
     const newExpanded = new Set(expandedCategories);
@@ -157,6 +190,18 @@ export default function CategoryTable({
 
   return (
     <>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-primary">Categories</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleExpandAll}
+          className="flex items-center space-x-2"
+        >
+          {expandAll ? <Minimize2 /> : <Maximize2 />}
+          <span>{expandAll ? "Collapse All" : "Expand All"}</span>
+        </Button>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
