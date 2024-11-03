@@ -18,6 +18,15 @@ interface CategoryTableProps {
   onDelete: (category: ICategory) => void;
 }
 
+const bgClasses = [
+  "bg-muted/0",
+  "bg-muted/20",
+  "bg-muted/40",
+  "bg-muted/60",
+  "bg-muted/80",
+  "bg-muted/100",
+];
+
 export default function CategoryTable({
   categories,
   onEdit,
@@ -57,6 +66,18 @@ export default function CategoryTable({
     setDeleteConfirmation({ category, children });
   };
 
+  const getBackgroundColorClass = (level: number) => {
+    return bgClasses[Math.min(level, bgClasses.length - 1)];
+  };
+
+  const getPaddingLeft = (level: number, hasChildren: boolean) => {
+    return level > 0
+      ? hasChildren
+        ? `calc(${level * 0.9}rem - 0.25rem)`
+        : `calc(${level * 0.9}rem + 1.5rem)`
+      : 0;
+  };
+
   const renderCategoryRow = (category: ICategory, level: number) => {
     const hasChildren = categories.some(
       (cat) => cat.ParentKey === category.Key
@@ -64,17 +85,19 @@ export default function CategoryTable({
     const isExpanded = expandedCategories.has(category.Key);
 
     return (
-      <TableRow key={category.Key} className={level > 0 ? "bg-muted/50" : ""}>
+      <TableRow key={category.Key} className={getBackgroundColorClass(level)}>
         <TableCell className="font-medium">
           <div
             className="flex items-center"
-            style={{ paddingLeft: `${level * 1.5}rem` }}
+            style={{
+              paddingLeft: getPaddingLeft(level, hasChildren),
+            }}
           >
             {hasChildren && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="p-0 h-6 w-6 mr-2"
+                className="p-0 h-6 w-6 mr-1"
                 onClick={() => toggleCategory(category.Key)}
               >
                 {isExpanded ? (
