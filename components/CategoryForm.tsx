@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { ICategory } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,6 +21,14 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 interface CategoryFormProps {
   categories: ICategory[];
@@ -30,6 +40,11 @@ interface CategoryFormProps {
 
 const noParentValue = "None";
 
+const formSchema = z.object({
+  CategoryName: z.string().min(1, "Category name is required"),
+  ParentKey: z.string().optional(),
+});
+
 export default function CategoryForm({
   categories,
   category,
@@ -37,38 +52,56 @@ export default function CategoryForm({
   onClose,
   onSubmit,
 }: CategoryFormProps) {
-  const [categoryName, setCategoryName] = useState(
-    category?.CategoryName || ""
-  );
-  const [parentKey, setParentKey] = useState(
-    category?.ParentKey ?? noParentValue
-  );
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      CategoryName: "",
+      ParentKey: noParentValue,
+    },
+  });
 
   useEffect(() => {
     if (category) {
-      setCategoryName(category.CategoryName);
-      setParentKey(category.ParentKey ?? noParentValue);
+      form.reset({
+        CategoryName: category.CategoryName,
+        ParentKey: category.ParentKey ?? noParentValue,
+      });
     } else {
-      setCategoryName("");
-      setParentKey(noParentValue);
+      form.reset({
+        CategoryName: "",
+        ParentKey: noParentValue,
+      });
     }
-  }, [category]);
+  }, [category, form]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const hasParent = parentKey !== noParentValue;
+  const handleSubmit = (values: z.infer<typeof formSchema>) => {
+    const hasParent = values.ParentKey && values.ParentKey !== noParentValue;
+
+    // Check if the selected parent is a child of the current category (for updates)
+    if (category && hasParent) {
+      const isChildOfCurrent = (parentKey: string): boolean => {
+        const parent = categories.find((cat) => cat.Key === parentKey);
+        if (!parent) return false;
+        if (parent.Key === category.Key) return true;
+        return parent.ParentKey ? isChildOfCurrent(parent.ParentKey) : false;
+      };
+
+      if (hasParent && isChildOfCurrent(values.ParentKey!)) {
+        form.setError("ParentKey", {
+          type: "manual",
+          message: "Cannot set a child category as the parent",
+        });
+        return;
+      }
+    }
+
     onSubmit({
-      CategoryName: categoryName,
-      ParentKey: hasParent ? parentKey : undefined,
+      CategoryName: values.CategoryName,
+      ParentKey: hasParent ? values.ParentKey : undefined,
     });
-    resetForm();
+    form.reset();
     onClose();
   };
-
-  const resetForm = () => {
-    setCategoryName("");
-    setParentKey(noParentValue);
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -76,45 +109,61 @@ export default function CategoryForm({
         <DialogHeader>
           <DialogTitle>{category ? "Edit" : "Add"} Category</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="flex flex-col gap-4 py-4">
-            <div className="grid grid-cols-6 items-center gap-4">
-              <Label htmlFor="categoryName" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="categoryName"
-                value={categoryName}
-                onChange={(e) => setCategoryName(e.target.value)}
-                className="col-span-5"
-                required
-              />
-            </div>
-            <div className="grid grid-cols-6 items-center gap-4">
-              <Label htmlFor="parentCategory" className="text-right">
-                Parent
-              </Label>
-              <Select value={parentKey} onValueChange={setParentKey}>
-                <SelectTrigger id="parentCategory" className="col-span-5">
-                  <SelectValue placeholder="Select a parent category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={noParentValue}>None</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat.Key} value={cat.Key}>
-                      {cat.CategoryName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit">
-              {category ? "Update" : "Create"} Category
-            </Button>
-          </DialogFooter>
-        </form>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <FormField
+              control={form.control}
+              name="CategoryName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="ParentKey"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Parent</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a parent category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value={noParentValue}>None</SelectItem>
+                      {categories
+                        .filter((cat) => cat.Key !== category?.Key)
+                        .map((cat) => (
+                          <SelectItem key={cat.Key} value={cat.Key}>
+                            {cat.CategoryName}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <DialogFooter>
+              <Button type="submit">
+                {category ? "Update" : "Create"} Category
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
