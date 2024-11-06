@@ -1,6 +1,5 @@
 import { IExpense } from "@/types";
 
-// Simulated database
 let expenses: IExpense[] = [];
 let nextKey = 1;
 

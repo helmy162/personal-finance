@@ -1,6 +1,5 @@
 import { IPayee } from "@/types";
 
-// Simulated database
 let payees: IPayee[] = [];
 let nextKey = 1;
 
@@ -75,33 +74,4 @@ export const deletePayee = async (key: string): Promise<void> => {
   } else {
     throw new Error("Payee not found");
   }
-};
-
-// Helper function to add some initial data
-export const initializePayees = () => {
-  payees = [
-    {
-      Key: "payee_1",
-      CompanyName: "Acme Corp",
-      Address1: "123 Main St",
-      City: "Anytown",
-      State: "CA",
-      PostalCode: "12345",
-      Country: "USA",
-      PrimaryContact: "John Doe",
-      PrimaryContactEmail: "john@acme.com",
-    },
-    {
-      Key: "payee_2",
-      CompanyName: "TechStart Inc",
-      Address1: "456 Innovation Ave",
-      City: "Tech City",
-      State: "NY",
-      PostalCode: "67890",
-      Country: "USA",
-      PrimaryContact: "Jane Smith",
-      PrimaryContactEmail: "jane@techstart.com",
-    },
-  ];
-  nextKey = 3;
 };

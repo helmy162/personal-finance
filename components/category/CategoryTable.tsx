@@ -1,14 +1,12 @@
 "use client";
 
-import { ReactElement, useState, useEffect } from "react";
+import { ReactElement, useState } from "react";
 import { ICategory } from "@/types";
 import {
   Edit,
   Trash2,
   ChevronRight,
   ChevronDown,
-  Maximize2,
-  Minimize2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +23,8 @@ interface CategoryTableProps {
   categories: ICategory[];
   onEdit: (category: ICategory) => void;
   onDelete: (category: ICategory) => void;
+  expandedCategories: Set<string>;
+  handleExpandRow: (categoryKey: string) => void;
 }
 
 const bgClasses = [
@@ -40,48 +40,13 @@ export default function CategoryTable({
   categories,
   onEdit,
   onDelete,
+  expandedCategories,
+  handleExpandRow,
 }: CategoryTableProps) {
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set()
-  );
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     category: ICategory;
     children: ICategory[];
   } | null>(null);
-  const [expandAll, setExpandAll] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const savedExpandAll = localStorage.getItem("expandAllCategories");
-    if (savedExpandAll && JSON.parse(savedExpandAll) == true) {
-      setExpandAll(true);
-    } else {
-      setExpandAll(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (expandAll !== null)
-      localStorage.setItem("expandAllCategories", JSON.stringify(expandAll));
-    if (expandAll) {
-      setExpandedCategories(new Set(categories.map((cat) => cat.Key)));
-    } else {
-      setExpandedCategories(new Set());
-    }
-  }, [expandAll, categories]);
-
-  const toggleExpandAll = () => {
-    setExpandAll(!expandAll);
-  };
-
-  const toggleCategory = (key: string) => {
-    const newExpanded = new Set(expandedCategories);
-    if (newExpanded.has(key)) {
-      newExpanded.delete(key);
-    } else {
-      newExpanded.add(key);
-    }
-    setExpandedCategories(newExpanded);
-  };
 
   const getChildCategories = (parentKey: string): ICategory[] => {
     return categories.filter((cat) => cat.ParentKey === parentKey);
@@ -131,7 +96,7 @@ export default function CategoryTable({
                 variant="ghost"
                 size="sm"
                 className="p-0 h-6 w-6 mr-1"
-                onClick={() => toggleCategory(category.Key)}
+                onClick={() => handleExpandRow(category.Key)}
               >
                 {isExpanded ? (
                   <ChevronDown className="h-4 w-4" />
@@ -190,18 +155,6 @@ export default function CategoryTable({
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-primary">Categories</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleExpandAll}
-          className="flex items-center space-x-2"
-        >
-          {expandAll ? <Minimize2 /> : <Maximize2 />}
-          <span>{expandAll ? "Collapse All" : "Expand All"}</span>
-        </Button>
-      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

@@ -14,7 +14,7 @@ import {
 import { fetchCategories } from "@/lib/api/categories";
 import { fetchPayees } from "@/lib/api/payees";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { Maximize2, Minimize2, PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ExpenseManager() {
@@ -25,6 +25,7 @@ export default function ExpenseManager() {
   const [selectedExpense, setSelectedExpense] = useState<IExpense | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     loadExpenses();
@@ -159,6 +160,40 @@ export default function ExpenseManager() {
     setIsFormOpen(false);
   };
 
+  const [expandAll, setExpandAll] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const savedExpandAll = localStorage.getItem("expandAllExpenses");
+    if (savedExpandAll && JSON.parse(savedExpandAll) == true) {
+      setExpandAll(true);
+    } else {
+      setExpandAll(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("expandAllExpenses", JSON.stringify(expandAll));
+    if (expandAll) {
+      setExpandedRows(new Set(expenses.map((exp) => exp.Key)));
+    } else {
+      setExpandedRows(new Set());
+    }
+  }, [expandAll, expenses]);
+
+  const toggleExpandAll = () => {
+    setExpandAll(!expandAll);
+  };
+
+  const toggleRow = (key: string) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key);
+    } else {
+      newExpanded.add(key);
+    }
+    setExpandedRows(newExpanded);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-end items-center">
@@ -170,6 +205,18 @@ export default function ExpenseManager() {
           Add New Expense
         </Button>
       </div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-primary">Expenses</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleExpandAll}
+          className="flex items-center space-x-2"
+        >
+          {expandAll ? <Minimize2 /> : <Maximize2 />}
+          <span>{expandAll ? "Collapse All" : "Expand All"}</span>
+        </Button>
+      </div>
       {isLoading ? (
         <ExpenseTableSkeleton />
       ) : (
@@ -179,6 +226,8 @@ export default function ExpenseManager() {
           payees={payees}
           onEdit={openForm}
           onDelete={handleDeleteExpense}
+          expandedRows={expandedRows}
+          handleExpandRow={toggleRow}
         />
       )}
       <ExpenseForm

@@ -42,6 +42,9 @@ export default function ExpenseTableSkeleton() {
                 <Skeleton className="h-6 w-[120px]" />
               </TableCell>
               <TableCell>
+                <Skeleton className="h-6 w-[80px]" />
+              </TableCell>
+              <TableCell>
                 <div className="flex justify-end space-x-2">
                   <Skeleton className="h-8 w-8 rounded-md" />
                   <Skeleton className="h-8 w-8 rounded-md" />

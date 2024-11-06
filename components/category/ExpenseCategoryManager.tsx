@@ -13,7 +13,7 @@ import {
   deleteCategory,
 } from "@/lib/api/categories";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { Maximize2, Minimize2, PlusCircle } from "lucide-react";
 
 export default function ExpenseCategoryManager() {
   const { toast } = useToast();
@@ -23,6 +23,10 @@ export default function ExpenseCategoryManager() {
   );
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
+    new Set()
+  );
 
   useEffect(() => {
     loadCategories();
@@ -123,6 +127,41 @@ export default function ExpenseCategoryManager() {
     setIsFormOpen(false);
   };
 
+  const [expandAll, setExpandAll] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const savedExpandAll = localStorage.getItem("expandAllCategories");
+    if (savedExpandAll && JSON.parse(savedExpandAll) == true) {
+      setExpandAll(true);
+    } else {
+      setExpandAll(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (expandAll !== null)
+      localStorage.setItem("expandAllCategories", JSON.stringify(expandAll));
+    if (expandAll) {
+      setExpandedCategories(new Set(categories.map((cat) => cat.Key)));
+    } else {
+      setExpandedCategories(new Set());
+    }
+  }, [expandAll, categories]);
+
+  const toggleExpandAll = () => {
+    setExpandAll(!expandAll);
+  };
+
+  const toggleCategory = (key: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(key)) {
+      newExpanded.delete(key);
+    } else {
+      newExpanded.add(key);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-end items-center">
@@ -134,6 +173,18 @@ export default function ExpenseCategoryManager() {
           Add New Category
         </Button>
       </div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-primary">Categories</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleExpandAll}
+          className="flex items-center space-x-2"
+        >
+          {expandAll ? <Minimize2 /> : <Maximize2 />}
+          <span>{expandAll ? "Collapse All" : "Expand All"}</span>
+        </Button>
+      </div>
       {isLoading ? (
         <CategoryTableSkeleton />
       ) : (
@@ -141,6 +192,8 @@ export default function ExpenseCategoryManager() {
           categories={categories}
           onEdit={openForm}
           onDelete={handleDeleteCategory}
+          expandedCategories={expandedCategories}
+          handleExpandRow={toggleCategory}
         />
       )}
       <CategoryForm
