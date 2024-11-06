@@ -27,4 +27,18 @@ interface IPayee {
   PrimaryContactEmail?: string;
 }
 
-export type { ICategory, IPayee };
+interface IExpense {
+  Key: string;
+  PurchaseDate: number;
+  Description: string;
+  Amount: number;
+  SalesTax: boolean;
+  PayeeKey: string;
+  CategoryKey: string;
+  ReceiptPath?: string;
+  CreatedBy: string;
+  CreationDate: number;
+  Deleted: false;
+}
+
+export type { ICategory, IPayee, IExpense };

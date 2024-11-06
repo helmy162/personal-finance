@@ -125,10 +125,7 @@ export default function ExpenseCategoryManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold text-primary">
-          Expense Categories
-        </h2>
+      <div className="flex justify-end items-center">
         <Button
           onClick={() => openForm()}
           className="bg-primary text-primary-foreground"
